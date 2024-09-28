@@ -3,9 +3,13 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"oirakif/simple-blog-service/pkg/auth/domain"
-	"oirakif/simple-blog-service/pkg/auth/handler"
-	"oirakif/simple-blog-service/pkg/user/repository"
+	"net/http"
+	authDomain "oirakif/simple-blog-service/pkg/auth/domain"
+	authHTTPHandler "oirakif/simple-blog-service/pkg/auth/handler"
+	blogPostDomain "oirakif/simple-blog-service/pkg/blog-post/domain"
+	blogPostHTTPHandler "oirakif/simple-blog-service/pkg/blog-post/handler"
+	blogPostRepository "oirakif/simple-blog-service/pkg/blog-post/repository"
+	userRepository "oirakif/simple-blog-service/pkg/user/repository"
 	"oirakif/simple-blog-service/pkg/utils"
 	"os"
 
@@ -15,9 +19,9 @@ import (
 )
 
 func main() {
-	usersV1BasicAuthUsername := os.Getenv("USER_V1_BASIC_AUTH_USERNAME")
-	usersV1BasicAuthPassword := os.Getenv("USER_V1_BASIC_AUTH_PASSWORD")
-	if usersV1BasicAuthUsername == "" || usersV1BasicAuthPassword == "" {
+	authV1BasicAuthUsername := os.Getenv("AUTH_V1_BASIC_AUTH_USERNAME")
+	authV1BasicAuthPassword := os.Getenv("AUTH_V1_BASIC_AUTH_PASSWORD")
+	if authV1BasicAuthUsername == "" || authV1BasicAuthPassword == "" {
 		panic("basic auth variables are not set")
 	}
 	addr := fmt.Sprintf("%s:%s", os.Getenv("DB_HOST"), os.Getenv("DB_PORT"))
@@ -31,25 +35,42 @@ func main() {
 	}
 	db, err := sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
-		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
+		panic(err.Error())
 	}
 
 	err = db.Ping()
 	if err != nil {
-		panic(err.Error()) // proper error handling instead of panic in your app
+		panic(err.Error())
 	}
 
-	userRepository := repository.NewUserRepository(db)
-	jwtUtils := utils.NewJWTUtils(os.Getenv("JWT_SECRET_KEY"))
-	authDomain := domain.NewAuthDomain(userRepository, jwtUtils)
-	r := gin.Default()
-	userHTTPHandler := handler.NewUserHTTPHandler(
-		r,
-		authDomain,
-		usersV1BasicAuthUsername,
-		usersV1BasicAuthPassword,
-	)
+	jwtSecret := os.Getenv("JWT_SECRET_KEY")
+	jwtUtils := utils.NewJWTUtils([]byte(jwtSecret))
+	// initiate repositories
+	userRepository := userRepository.NewUserRepository(db)
+	blogPostRepository := blogPostRepository.NewBlogPostRepository(db)
 
-	userHTTPHandler.InitiateRoutes()
+	// initiate domains
+	authDomain := authDomain.NewAuthDomain(*userRepository, *jwtUtils)
+	blogPostDomain := blogPostDomain.NewBlogPostDomain(*blogPostRepository)
+
+	r := gin.Default()
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "pong",
+		})
+	})
+
+	// initiate http handlers
+	authHTTPHandler := authHTTPHandler.NewAuthHTTPHandler(
+		r,
+		*authDomain,
+		authV1BasicAuthUsername,
+		authV1BasicAuthPassword,
+	)
+	blogPostHttpHandler := blogPostHTTPHandler.NewBlogPostHTTPHandler(r, *blogPostDomain, *jwtUtils)
+
+	// ship up the routes
+	authHTTPHandler.InitiateRoutes()
+	blogPostHttpHandler.InitiateRoutes()
 	r.Run()
 }

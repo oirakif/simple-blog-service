@@ -3,7 +3,7 @@ package repository
 import (
 	"database/sql"
 	"log"
-	"oirakif/simple-blog-service/pkg/auth/model"
+	"oirakif/simple-blog-service/pkg/user/model"
 
 	"github.com/Masterminds/squirrel"
 )
@@ -12,8 +12,8 @@ type UserRepository struct {
 	db *sql.DB
 }
 
-func NewUserRepository(db *sql.DB) UserRepository {
-	return UserRepository{
+func NewUserRepository(db *sql.DB) *UserRepository {
+	return &UserRepository{
 		db: db,
 	}
 }

@@ -8,30 +8,29 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UserHTTPHandler struct {
+type AuthHTTPHandler struct {
 	router            *gin.Engine
 	authDomain        domain.AuthDomain
 	basicAuthUsername string
 	basicAuthPassword string
 }
 
-func NewUserHTTPHandler(
+func NewAuthHTTPHandler(
 	r *gin.Engine,
 	authDomain domain.AuthDomain,
 	basicAuthUsername string,
 	basicAuthPassword string,
-) (handler UserHTTPHandler) {
-	handler = UserHTTPHandler{
+) *AuthHTTPHandler {
+
+	return &AuthHTTPHandler{
 		router:            r,
 		authDomain:        authDomain,
 		basicAuthUsername: basicAuthUsername,
 		basicAuthPassword: basicAuthPassword,
 	}
-
-	return handler
 }
 
-func (h *UserHTTPHandler) InitiateRoutes() {
+func (h *AuthHTTPHandler) InitiateRoutes() {
 	usersV1 := h.router.Group("auth/v1",
 		gin.BasicAuth(gin.Accounts{
 			h.basicAuthUsername: h.basicAuthPassword,
@@ -43,7 +42,7 @@ func (h *UserHTTPHandler) InitiateRoutes() {
 
 }
 
-func (h *UserHTTPHandler) handleRegister(c *gin.Context) {
+func (h *AuthHTTPHandler) handleRegister(c *gin.Context) {
 	var registerPayload model.RegisterHTTPPayload
 	if err := c.ShouldBindJSON(&registerPayload); err != nil {
 		if err.Error() == "EOF" {
@@ -57,7 +56,7 @@ func (h *UserHTTPHandler) handleRegister(c *gin.Context) {
 	c.JSON(statusCode, response)
 }
 
-func (h *UserHTTPHandler) handleLogin(c *gin.Context) {
+func (h *AuthHTTPHandler) handleLogin(c *gin.Context) {
 	var loginPayload model.LoginHTTPPayload
 	if err := c.ShouldBindJSON(&loginPayload); err != nil {
 		if err.Error() == "EOF" {
