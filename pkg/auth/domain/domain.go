@@ -2,7 +2,8 @@ package domain
 
 import (
 	"net/http"
-	"oirakif/simple-blog-service/pkg/auth/model"
+	authModel "oirakif/simple-blog-service/pkg/auth/model"
+	userModel "oirakif/simple-blog-service/pkg/user/model"
 	"oirakif/simple-blog-service/pkg/user/repository"
 
 	"oirakif/simple-blog-service/pkg/utils"
@@ -19,17 +20,16 @@ type AuthDomain struct {
 func NewAuthDomain(
 	userRepository repository.UserRepository,
 	jwtUtils utils.JWTUtils,
-) (domain AuthDomain) {
-	domain = AuthDomain{
+) *AuthDomain {
+	return &AuthDomain{
 		userRepository: userRepository,
 	}
 
-	return domain
 }
 
-func (d *AuthDomain) RegisterUser(email, password, name string) (statusCode int, response model.RegisterResponse) {
+func (d *AuthDomain) RegisterUser(email, password, name string) (statusCode int, response authModel.RegisterResponse) {
 	hashedPassword := utils.HashSHA256(password)
-	filterQuery := model.FindUserFilterQuery{
+	filterQuery := userModel.FindUserFilterQuery{
 		Email: &email,
 	}
 	retrievedUser, err := d.userRepository.FindUser(filterQuery)
@@ -46,7 +46,7 @@ func (d *AuthDomain) RegisterUser(email, password, name string) (statusCode int,
 		return http.StatusConflict, response
 	}
 	currentTimestamp := time.Now()
-	newUser := model.User{
+	newUser := userModel.User{
 		Name:         name,
 		Email:        email,
 		PasswordHash: hashedPassword,
@@ -68,9 +68,9 @@ func (d *AuthDomain) RegisterUser(email, password, name string) (statusCode int,
 	return http.StatusCreated, response
 }
 
-func (d *AuthDomain) Login(email, password string) (statusCode int, response model.RegisterResponse) {
+func (d *AuthDomain) Login(email, password string) (statusCode int, response authModel.LoginResponse) {
 	hashedPassword := utils.HashSHA256(password)
-	filterQuery := model.FindUserFilterQuery{
+	filterQuery := userModel.FindUserFilterQuery{
 		Email:        &email,
 		PasswordHash: &hashedPassword,
 	}
@@ -89,8 +89,9 @@ func (d *AuthDomain) Login(email, password string) (statusCode int, response mod
 		return http.StatusInternalServerError, response
 	}
 	// Create the claims
-	claims := model.JWTClaims{
-		Email: email,
+	claims := utils.JWTClaims{
+		UserID: retrievedUser.ID,
+		Email:  email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
 		},
