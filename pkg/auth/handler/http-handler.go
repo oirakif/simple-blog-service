@@ -9,14 +9,14 @@ import (
 )
 
 type AuthHTTPHandler struct {
-	router            *gin.Engine
+	router            *gin.RouterGroup
 	authDomain        domain.AuthDomain
 	basicAuthUsername string
 	basicAuthPassword string
 }
 
 func NewAuthHTTPHandler(
-	r *gin.Engine,
+	r *gin.RouterGroup,
 	authDomain domain.AuthDomain,
 	basicAuthUsername string,
 	basicAuthPassword string,
@@ -31,7 +31,7 @@ func NewAuthHTTPHandler(
 }
 
 func (h *AuthHTTPHandler) InitiateRoutes() {
-	usersV1 := h.router.Group("auth/v1",
+	usersV1 := h.router.Group("/auth/v1",
 		gin.BasicAuth(gin.Accounts{
 			h.basicAuthUsername: h.basicAuthPassword,
 		}),

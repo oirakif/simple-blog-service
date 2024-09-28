@@ -9,6 +9,14 @@ type CreateBlogPostHTTPPayload struct {
 	Content string `json:"content" binding:"required"`
 }
 
+type UpdateBlogPostHTTPPayload struct {
+	Title   *string `json:"title" binding:"omitempty"`
+	Content *string `json:"content" binding:"omitempty"`
+	Status  *string `json:"status" binding:"omitempty"`
+}
+type BlogPostsPathParam struct {
+	ID *int `uri:"id" binding:"required,gt=0"`
+}
 type GetBlogPostsQueryParams struct {
 	ID        *int    `form:"id" binding:"omitempty,gt=0"`
 	AuthorID  *int    `form:"author_id" binding:"omitempty,gt=0"`
@@ -21,13 +29,13 @@ type GetBlogPostsQueryParams struct {
 }
 
 type BlogPost struct {
-	ID        int       `json:"id,omitempty"`
-	Title     string    `json:"title,omitempty"`
-	Content   string    `json:"content,omitempty"`
-	AuthorID  int       `json:"author_id,omitempty"`
-	Status    string    `json:"status,omitempty"`
-	CreatedAt time.Time `json:"createdAt,omitempty"`
-	UpdatedAt time.Time `json:"updatedAt,omitempty"`
+	ID        *int       `json:"id,omitempty"`
+	Title     *string    `json:"title,omitempty"`
+	Content   *string    `json:"content,omitempty"`
+	AuthorID  *int       `json:"author_id,omitempty"`
+	Status    *string    `json:"status,omitempty"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 }
 
 type BlogPostResponse struct {

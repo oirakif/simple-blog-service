@@ -31,12 +31,12 @@ func (r *BlogPostRepository) InsertBlogPost(newBlogPost model.BlogPost) (newID i
 			"updated_at",
 		).
 		Values(
-			newBlogPost.Title,
-			newBlogPost.Content,
-			newBlogPost.AuthorID,
-			newBlogPost.Status,
-			newBlogPost.CreatedAt,
-			newBlogPost.UpdatedAt,
+			*newBlogPost.Title,
+			*newBlogPost.Content,
+			*newBlogPost.AuthorID,
+			*newBlogPost.Status,
+			*newBlogPost.CreatedAt,
+			*newBlogPost.UpdatedAt,
 		)
 
 	sql, args, err := builder.ToSql()
@@ -103,8 +103,7 @@ func (r *BlogPostRepository) GetBlogPosts(filterQuery model.BlogPostFilterQuery)
 		log.Println(err)
 		return nil, err
 	}
-
-	rows, err := r.db.Query(sql, args...) // ? = placeholder
+	rows, err := r.db.Query(sql, args...)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -130,4 +129,43 @@ func (r *BlogPostRepository) GetBlogPosts(filterQuery model.BlogPostFilterQuery)
 	}
 
 	return data, nil
+}
+
+func (r *BlogPostRepository) UpdateBlogPost(filterQuery model.BlogPostFilterQuery, updatePayload model.BlogPost) (err error) {
+	builder := squirrel.
+		Update("posts")
+
+	if updatePayload.Title != nil {
+		builder = builder.Set("title", *updatePayload.Title)
+	}
+	if updatePayload.Content != nil {
+		builder = builder.Set("content", *updatePayload.Content)
+	}
+	if updatePayload.Status != nil {
+		builder = builder.Set("status", *updatePayload.Status)
+	}
+	if updatePayload.UpdatedAt != nil {
+		builder = builder.Set("updated_at", *updatePayload.UpdatedAt)
+	}
+
+	if filterQuery.ID != nil {
+		builder = builder.Where("id=?", *filterQuery.ID)
+	}
+	if filterQuery.AuthorID != nil {
+		builder = builder.Where("author_id=?", *filterQuery.AuthorID)
+	}
+
+	sql, args, err := builder.ToSql()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	_, err = r.db.Exec(sql, args...)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
 }
