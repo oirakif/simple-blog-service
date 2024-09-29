@@ -13,16 +13,17 @@ import (
 )
 
 type AuthDomain struct {
-	userRepository repository.UserRepository
-	jwtUtils       utils.JWTUtils
+	userRepository *repository.UserRepository
+	jwtUtils       *utils.JWTUtils
 }
 
 func NewAuthDomain(
-	userRepository repository.UserRepository,
-	jwtUtils utils.JWTUtils,
+	userRepository *repository.UserRepository,
+	jwtUtils *utils.JWTUtils,
 ) *AuthDomain {
 	return &AuthDomain{
 		userRepository: userRepository,
+		jwtUtils:       jwtUtils,
 	}
 
 }
@@ -90,8 +91,9 @@ func (d *AuthDomain) Login(email, password string) (statusCode int, response aut
 	}
 	// Create the claims
 	claims := utils.JWTClaims{
-		UserID: retrievedUser.ID,
-		Email:  email,
+		UserID:          retrievedUser.ID,
+		UserProfileName: retrievedUser.Name,
+		Email:           email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
 		},

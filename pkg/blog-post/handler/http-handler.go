@@ -11,14 +11,14 @@ import (
 
 type BlogPostHTTPHandler struct {
 	router         *gin.RouterGroup
-	blogPostDomain domain.BlogPostDomain
-	jwtUtils       utils.JWTUtils
+	blogPostDomain *domain.BlogPostDomain
+	jwtUtils       *utils.JWTUtils
 }
 
 func NewBlogPostHTTPHandler(
 	r *gin.RouterGroup,
-	blogPostDomain domain.BlogPostDomain,
-	jwtUtils utils.JWTUtils,
+	blogPostDomain *domain.BlogPostDomain,
+	jwtUtils *utils.JWTUtils,
 ) *BlogPostHTTPHandler {
 
 	return &BlogPostHTTPHandler{
@@ -69,9 +69,9 @@ func (h *BlogPostHTTPHandler) handleCreateBlogPost(c *gin.Context) {
 
 	statusCode, response := h.blogPostDomain.
 		CreateBlogPost(
+			authorID,
 			payload.Title,
 			payload.Content,
-			authorID,
 		)
 
 	c.JSON(statusCode, response)

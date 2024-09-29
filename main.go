@@ -6,6 +6,9 @@ import (
 	"net/http"
 	authDomain "oirakif/simple-blog-service/pkg/auth/domain"
 	authHTTPHandler "oirakif/simple-blog-service/pkg/auth/handler"
+	blogPostCommentDomain "oirakif/simple-blog-service/pkg/blog-post-comment/domain"
+	blogPostCommentHTTPHandler "oirakif/simple-blog-service/pkg/blog-post-comment/handler"
+	blogPostCommentRepository "oirakif/simple-blog-service/pkg/blog-post-comment/repository"
 	blogPostDomain "oirakif/simple-blog-service/pkg/blog-post/domain"
 	blogPostHTTPHandler "oirakif/simple-blog-service/pkg/blog-post/handler"
 	blogPostRepository "oirakif/simple-blog-service/pkg/blog-post/repository"
@@ -45,13 +48,16 @@ func main() {
 
 	jwtSecret := os.Getenv("JWT_SECRET_KEY")
 	jwtUtils := utils.NewJWTUtils([]byte(jwtSecret))
+
 	// initiate repositories
 	userRepository := userRepository.NewUserRepository(db)
 	blogPostRepository := blogPostRepository.NewBlogPostRepository(db)
+	blogPostCommentRepository := blogPostCommentRepository.NewBlogPostCommentRepository(db)
 
 	// initiate domains
-	authDomain := authDomain.NewAuthDomain(*userRepository, *jwtUtils)
-	blogPostDomain := blogPostDomain.NewBlogPostDomain(*blogPostRepository)
+	authDomain := authDomain.NewAuthDomain(userRepository, jwtUtils)
+	blogPostDomain := blogPostDomain.NewBlogPostDomain(blogPostRepository)
+	blogPostCommentDomain := blogPostCommentDomain.NewBlogPostCommentDomain(blogPostCommentRepository, blogPostRepository)
 
 	r := gin.Default()
 	r.GET("/ping", func(c *gin.Context) {
@@ -64,14 +70,17 @@ func main() {
 	// initiate http handlers
 	authHTTPHandler := authHTTPHandler.NewAuthHTTPHandler(
 		mainRouter,
-		*authDomain,
+		authDomain,
 		authV1BasicAuthUsername,
 		authV1BasicAuthPassword,
 	)
-	blogPostHttpHandler := blogPostHTTPHandler.NewBlogPostHTTPHandler(mainRouter, *blogPostDomain, *jwtUtils)
+	blogPostHttpHandler := blogPostHTTPHandler.NewBlogPostHTTPHandler(mainRouter, blogPostDomain, jwtUtils)
+	blogPostCommentHTTPHandler := blogPostCommentHTTPHandler.NewBlogPostCommentHTTPHandler(mainRouter, *blogPostCommentDomain, *jwtUtils)
 
 	// ship up the routes
 	authHTTPHandler.InitiateRoutes()
 	blogPostHttpHandler.InitiateRoutes()
+	blogPostCommentHTTPHandler.InitiateRoutes()
+
 	r.Run()
 }
