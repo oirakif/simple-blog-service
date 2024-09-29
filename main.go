@@ -59,15 +59,16 @@ func main() {
 			"message": "pong",
 		})
 	})
+	mainRouter := r.Group("/simple-blog-service")
 
 	// initiate http handlers
 	authHTTPHandler := authHTTPHandler.NewAuthHTTPHandler(
-		r,
+		mainRouter,
 		*authDomain,
 		authV1BasicAuthUsername,
 		authV1BasicAuthPassword,
 	)
-	blogPostHttpHandler := blogPostHTTPHandler.NewBlogPostHTTPHandler(r, *blogPostDomain, *jwtUtils)
+	blogPostHttpHandler := blogPostHTTPHandler.NewBlogPostHTTPHandler(mainRouter, *blogPostDomain, *jwtUtils)
 
 	// ship up the routes
 	authHTTPHandler.InitiateRoutes()

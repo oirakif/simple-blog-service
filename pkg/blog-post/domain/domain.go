@@ -24,13 +24,16 @@ func NewBlogPostDomain(
 
 func (d *BlogPostDomain) CreateBlogPost(title, content string, authorID int) (statusCode int, response model.BlogPostResponse) {
 	currentTimestamp := time.Now()
+	status := "ACTIVE"
 	newBlogPost := model.BlogPost{
-		Title:     title,
-		Content:   content,
-		AuthorID:  authorID,
-		CreatedAt: currentTimestamp,
-		UpdatedAt: currentTimestamp,
+		Title:     &title,
+		Content:   &content,
+		AuthorID:  &authorID,
+		Status:    &status,
+		CreatedAt: &currentTimestamp,
+		UpdatedAt: &currentTimestamp,
 	}
+
 	newBlogPostID, err := d.blogPostRepository.InsertBlogPost(newBlogPost)
 	if err != nil {
 		response.Error = true
@@ -38,7 +41,8 @@ func (d *BlogPostDomain) CreateBlogPost(title, content string, authorID int) (st
 
 		return http.StatusInternalServerError, response
 	}
-	newBlogPost.ID = newBlogPostID
+
+	newBlogPost.ID = &newBlogPostID
 
 	response.Data = newBlogPost
 	response.Message = "new blog post created"
@@ -49,6 +53,7 @@ func (d *BlogPostDomain) CreateBlogPost(title, content string, authorID int) (st
 func (d *BlogPostDomain) GetBlogPosts(queries *model.GetBlogPostsQueryParams) (statusCode int, response model.BlogPostResponse) {
 	page, perPage := 1, 25
 	sortBy, sortOrder := "created_at", "desc"
+	status := "ACTIVE"
 	var filterQuery model.BlogPostFilterQuery
 	if queries.Page != nil {
 		page = *queries.Page
@@ -62,13 +67,17 @@ func (d *BlogPostDomain) GetBlogPosts(queries *model.GetBlogPostsQueryParams) (s
 	if queries.SortOrder != nil {
 		sortOrder = *queries.SortOrder
 	}
+	if queries.Status != nil {
+		status = *queries.Status
+	}
 	offset := utils.CalculateOffset(page, perPage)
 
-	filterQuery.Limit = perPage
-	filterQuery.Offset = offset
+	filterQuery.ID = queries.ID
 	filterQuery.AuthorID = queries.AuthorID
 	filterQuery.Title = queries.Title
-	filterQuery.Status = queries.Status
+	filterQuery.Status = &status
+	filterQuery.Limit = perPage
+	filterQuery.Offset = offset
 	filterQuery.SortBy = &sortBy
 	filterQuery.SortOrder = &sortOrder
 
@@ -84,4 +93,45 @@ func (d *BlogPostDomain) GetBlogPosts(queries *model.GetBlogPostsQueryParams) (s
 	response.Message = "blog posts data"
 
 	return http.StatusOK, response
+}
+
+func (d *BlogPostDomain) UpdateBlogPost(blogPostID, authorID int, title, content, status *string) (statusCode int, response model.BlogPostResponse) {
+	currentTimestamp := time.Now()
+	filterQuery := model.BlogPostFilterQuery{
+		ID:       &blogPostID,
+		AuthorID: &authorID,
+		Limit:    1,
+	}
+
+	data, err := d.blogPostRepository.GetBlogPosts(filterQuery)
+	if err != nil {
+		response.Error = true
+		response.Message = "error occured while getting blog post data"
+
+		return http.StatusInternalServerError, response
+	}
+	if len(data) == 0 {
+		response.Error = true
+		response.Message = "blog post is not found"
+
+		return http.StatusNotFound, response
+	}
+
+	updatePayload := model.BlogPost{
+		Title:     title,
+		Content:   content,
+		AuthorID:  &authorID,
+		Status:    status,
+		UpdatedAt: &currentTimestamp,
+	}
+
+	err = d.blogPostRepository.UpdateBlogPost(filterQuery, updatePayload)
+	if err != nil {
+		response.Error = true
+		response.Message = "error occured while updating new blog post"
+
+		return http.StatusInternalServerError, response
+	}
+
+	return http.StatusNoContent, response
 }
