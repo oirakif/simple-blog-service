@@ -32,7 +32,7 @@ func (h *BlogPostHTTPHandler) InitiateRoutes() {
 	blogPostsV1 := h.router.Group("/posts/v1")
 
 	blogPostsV1.POST("/posts", h.jwtUtils.ValidateToken, h.handleCreateBlogPost)
-	blogPostsV1.GET("/posts", h.jwtUtils.ValidateToken, h.handleGetAllBlogPost)
+	blogPostsV1.GET("/posts", h.jwtUtils.ValidateToken, h.handleGetBlogPosts)
 	blogPostsV1.GET("/posts/:id", h.jwtUtils.ValidateToken, h.handleGetBlogPostByID)
 	blogPostsV1.PUT("/posts/:id", h.jwtUtils.ValidateToken, h.handleUpdateBlogPost)
 	blogPostsV1.DELETE("/posts/:id", h.jwtUtils.ValidateToken, h.handleDeleteBlogPost)
@@ -77,7 +77,7 @@ func (h *BlogPostHTTPHandler) handleCreateBlogPost(c *gin.Context) {
 	c.JSON(statusCode, response)
 }
 
-func (h *BlogPostHTTPHandler) handleGetAllBlogPost(c *gin.Context) {
+func (h *BlogPostHTTPHandler) handleGetBlogPosts(c *gin.Context) {
 	var queryParams model.GetBlogPostsQueryParams
 
 	if err := c.ShouldBindQuery(&queryParams); err != nil {
