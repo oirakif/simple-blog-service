@@ -25,5 +25,28 @@ type BlogPostCommentResponse struct {
 }
 
 type BlogPostCommentPathParam struct {
-	PostID *int `uri:"postID" binding:"required,gt=0"`
+	ID *int `uri:"id" binding:"required,gt=0"`
+}
+type GetBlogPostCommentsQueryParams struct {
+	ID         *int    `form:"id" binding:"omitempty,gt=0"`
+	PostID     *int    `form:"post_id" binding:"omitempty,gt=0"`
+	AuthorName *string `form:"author_name" binding:"omitempty"`
+	Page       *int    `form:"page" binding:"omitempty,gt=0"`
+	PerPage    *int    `form:"per_page" binding:"omitempty,gt=0"`
+	Status     *string `form:"status" binding:"omitempty"`
+	SortBy     *string `form:"sort_by" binding:"omitempty"`
+	SortOrder  *string `form:"sort_order" binding:"omitempty"`
+}
+
+type BlogPostCommentFilterQuery struct {
+	ID         *int
+	PostID     *int
+	AuthorName *string
+	Status     *string
+	CreatedAt  *time.Time
+	UpdatedAt  *time.Time
+	SortBy     *string
+	SortOrder  *string
+	Limit      int
+	Offset     int
 }

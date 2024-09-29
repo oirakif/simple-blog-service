@@ -31,8 +31,8 @@ func NewBlogPostCommentHTTPHandler(
 func (h *BlogPostCommentHTTPHandler) InitiateRoutes() {
 	blogPostCommentsV1 := h.router.Group("/posts/v1")
 
-	blogPostCommentsV1.POST("/posts/:postID/comments", h.jwtUtils.ValidateToken, h.handleCreateBlogPostComment)
-
+	blogPostCommentsV1.POST("/posts/:id/comments", h.jwtUtils.ValidateToken, h.handleCreateBlogPostComment)
+	blogPostCommentsV1.GET("/posts/:id/comments", h.jwtUtils.ValidateToken, h.handleGetBlogPostComments)
 }
 
 func (h *BlogPostCommentHTTPHandler) handleCreateBlogPostComment(c *gin.Context) {
@@ -64,7 +64,26 @@ func (h *BlogPostCommentHTTPHandler) handleCreateBlogPostComment(c *gin.Context)
 		return
 	}
 
-	statusCode, response := h.blogPostCommentDomain.CreateBlogPostComment(authorNameParsed, pathParams.PostID, payload.Content)
+	statusCode, response := h.blogPostCommentDomain.CreateBlogPostComment(authorNameParsed, pathParams.ID, payload.Content)
 
+	c.JSON(statusCode, response)
+}
+
+func (h *BlogPostCommentHTTPHandler) handleGetBlogPostComments(c *gin.Context) {
+	var pathParams model.BlogPostCommentPathParam
+	if err := c.ShouldBindUri(&pathParams); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var queryParams model.GetBlogPostCommentsQueryParams
+
+	if err := c.ShouldBindQuery(&queryParams); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	queryParams.PostID = pathParams.ID
+	statusCode, response := h.blogPostCommentDomain.GetBlogPostComments(&queryParams)
 	c.JSON(statusCode, response)
 }
