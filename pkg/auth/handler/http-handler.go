@@ -10,14 +10,14 @@ import (
 
 type AuthHTTPHandler struct {
 	router            *gin.RouterGroup
-	authDomain        domain.AuthDomain
+	authDomain        *domain.AuthDomain
 	basicAuthUsername string
 	basicAuthPassword string
 }
 
 func NewAuthHTTPHandler(
 	r *gin.RouterGroup,
-	authDomain domain.AuthDomain,
+	authDomain *domain.AuthDomain,
 	basicAuthUsername string,
 	basicAuthPassword string,
 ) *AuthHTTPHandler {

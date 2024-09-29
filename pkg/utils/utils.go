@@ -15,7 +15,7 @@ var secretKey = []byte("mysecretkey123") // The secret key used for signing the 
 
 type JWTClaims struct {
 	UserID          int    `json:"user_id"`
-	UserProfileName int    `json:"user_profile_name"`
+	UserProfileName string `json:"user_profile_name"`
 	Email           string `json:"email"`
 	jwt.RegisteredClaims
 }

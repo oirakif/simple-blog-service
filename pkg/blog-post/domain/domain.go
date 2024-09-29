@@ -10,11 +10,11 @@ import (
 )
 
 type BlogPostDomain struct {
-	blogPostRepository repository.BlogPostRepository
+	blogPostRepository *repository.BlogPostRepository
 }
 
 func NewBlogPostDomain(
-	blogPostRepository repository.BlogPostRepository,
+	blogPostRepository *repository.BlogPostRepository,
 ) *BlogPostDomain {
 
 	return &BlogPostDomain{
@@ -22,7 +22,7 @@ func NewBlogPostDomain(
 	}
 }
 
-func (d *BlogPostDomain) CreateBlogPost(title, content string, authorID int) (statusCode int, response model.BlogPostResponse) {
+func (d *BlogPostDomain) CreateBlogPost(authorID int, title, content string) (statusCode int, response model.BlogPostResponse) {
 	currentTimestamp := time.Now()
 	status := "ACTIVE"
 	newBlogPost := model.BlogPost{
