@@ -12,7 +12,7 @@ CREATE TABLE `users` (
 CREATE TABLE `posts` (
   `id` int NOT NULL AUTO_INCREMENT,
   `title` varchar(200) DEFAULT NULL,
-  `content` varchar(5000) DEFAULT NULL,
+  `content` text DEFAULT NULL,
   `author_id` int DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -25,7 +25,7 @@ CREATE TABLE `comments` (
   `id` int NOT NULL AUTO_INCREMENT,
   `post_id` int DEFAULT NULL,
   `author_name` varchar(200) DEFAULT NULL,
-  `content` varchar(1000) DEFAULT NULL,
+  `content` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -37,4 +37,5 @@ CREATE INDEX idx_comments_post_id ON comments(post_id);
 CREATE INDEX idx_users_created_at ON users(created_at);
 CREATE INDEX idx_blog_posts_created_at ON posts(created_at);
 CREATE INDEX idx_comments_created_at ON comments(created_at);
+
 
