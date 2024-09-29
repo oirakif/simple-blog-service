@@ -14,8 +14,9 @@ import (
 var secretKey = []byte("mysecretkey123") // The secret key used for signing the token
 
 type JWTClaims struct {
-	UserID int    `json:"user_id"`
-	Email  string `json:"email"`
+	UserID          int    `json:"user_id"`
+	UserProfileName int    `json:"user_profile_name"`
+	Email           string `json:"email"`
 	jwt.RegisteredClaims
 }
 
@@ -65,6 +66,7 @@ func (jwtu *JWTUtils) ValidateToken(c *gin.Context) {
 	// Validate token and check the claims
 	if claims, ok := parsed.Claims.(*JWTClaims); ok && parsed.Valid {
 		c.Set("user_id", claims.UserID)
+		c.Set("user_profile_name", claims.UserProfileName)
 		c.Set("email", claims.Email)
 		c.Next()
 
