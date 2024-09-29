@@ -16,7 +16,7 @@ A simple backend service made in golang, to simulate simple blog website usecase
 * squirrel query builder golang lib
 
 ## DB Schema
-WIP
+<img width="912" alt="image" src="https://github.com/user-attachments/assets/06a17841-f65c-45a6-bdff-bc317f4ec6f5">
 
 ## DB Indexes
 * UNIQUE users.email : to speed up auth existing email register query check process
