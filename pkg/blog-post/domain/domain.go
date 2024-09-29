@@ -95,7 +95,7 @@ func (d *BlogPostDomain) GetBlogPosts(queries *model.GetBlogPostsQueryParams) (s
 	return http.StatusOK, response
 }
 
-func (d *BlogPostDomain) UpdateBlogPost(blogPostID, authorID int, title, content, status *string) (statusCode int, response model.BlogPostResponse) {
+func (d *BlogPostDomain) UpdateBlogPost(authorID, blogPostID int, title, content, status *string) (statusCode int, response model.BlogPostResponse) {
 	currentTimestamp := time.Now()
 	filterQuery := model.BlogPostFilterQuery{
 		ID:       &blogPostID,
@@ -129,6 +129,45 @@ func (d *BlogPostDomain) UpdateBlogPost(blogPostID, authorID int, title, content
 	if err != nil {
 		response.Error = true
 		response.Message = "error occured while updating new blog post"
+
+		return http.StatusInternalServerError, response
+	}
+
+	return http.StatusNoContent, response
+}
+
+func (d *BlogPostDomain) DeleteBlogPost(authorID, blogPostID int) (statusCode int, response model.BlogPostResponse) {
+	currentTimestamp := time.Now()
+	filterQuery := model.BlogPostFilterQuery{
+		ID:       &blogPostID,
+		AuthorID: &authorID,
+		Limit:    1,
+	}
+
+	data, err := d.blogPostRepository.GetBlogPosts(filterQuery)
+	if err != nil {
+		response.Error = true
+		response.Message = "error occured while getting blog post data"
+
+		return http.StatusInternalServerError, response
+	}
+	if len(data) == 0 {
+		response.Error = true
+		response.Message = "blog post is not found"
+
+		return http.StatusNotFound, response
+	}
+
+	inactiveStatus := "INACTIVE"
+	updatePayload := model.BlogPost{
+		Status:    &inactiveStatus,
+		UpdatedAt: &currentTimestamp,
+	}
+
+	err = d.blogPostRepository.UpdateBlogPost(filterQuery, updatePayload)
+	if err != nil {
+		response.Error = true
+		response.Message = "error occured while deleting blog post"
 
 		return http.StatusInternalServerError, response
 	}

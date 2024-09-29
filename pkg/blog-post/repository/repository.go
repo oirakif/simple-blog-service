@@ -103,6 +103,7 @@ func (r *BlogPostRepository) GetBlogPosts(filterQuery model.BlogPostFilterQuery)
 		log.Println(err)
 		return nil, err
 	}
+
 	rows, err := r.db.Query(sql, args...)
 	if err != nil {
 		log.Println(err)
